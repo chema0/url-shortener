@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:15.3
+    ports:
+      - "15432:5432"
+    environment:
+      - POSTGRES_DB
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+      - POSTGRES_ROOT_PASSWORD
+    volumes:
+      - pg_db:/var/lib/postgresql
+      - pg_db_data:/var/lib/postgresql/data
+volumes:
+  pg_db:
+  pg_db_data:
