@@ -8,6 +8,6 @@ Use `env` environment variable when running the program, example:
 env="dev" go run main.go
 ```
 
-### Other
+## Other
 
 Inspired in [tutorial-url-shortener-supabase-ory-integration-backend](https://www.ory.sh/tutorial-url-shortener-supabase-ory-integration-backend/)
