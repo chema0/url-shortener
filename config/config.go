@@ -59,3 +59,6 @@ func LoadConfig() *Config {
 	fmt.Printf("Loaded '%s' config: %+v\n", env, config)
 	return config
 }
+
+// TODO: validate config fn
+// TODO: tests

@@ -10,7 +10,6 @@ import (
 	"github.com/jackc/pgx/v5"
 	// "github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
@@ -36,28 +35,6 @@ func NewDatabase(config *config.DatabaseConfig) (*Database, error) {
 		Conn:       conn,
 		ConnString: connString,
 	}, nil
-}
-
-func (db *Database) RunMigrations() {
-	fmt.Println("Running UP database migrations..")
-	m, err := migrate.New("file://migrations/", db.ConnString)
-	if err != nil {
-		panic(fmt.Errorf("unable to connect to database: %v", err))
-	}
-	if err := m.Up(); err != nil {
-		fmt.Println("No changes after running migrations")
-	}
-}
-
-func (db *Database) RunMigrationsDown() {
-	fmt.Println("Running DOWN database migrations..")
-	m, err := migrate.New("file://migrations/", db.ConnString)
-	if err != nil {
-		panic(fmt.Errorf("unable to connect to database: %v", err))
-	}
-	if err := m.Down(); err != nil {
-		fmt.Println("No changes after running down migrations")
-	}
 }
 
 func buildConnString(config *config.DatabaseConfig) string {
