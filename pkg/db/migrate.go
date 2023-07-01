@@ -1,11 +1,38 @@
 package db
 
 import (
+	"database/sql"
 	"os"
+	"time"
 
+	"github.com/chema0/url-shortener/migrations"
 	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
+	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"github.com/rs/zerolog/log"
 )
+
+func NewMigrate(db *sql.DB) *migrate.Migrate {
+	driver, err := postgres.WithInstance(db, &postgres.Config{})
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to load driver")
+	}
+
+	d, err := iofs.New(migrations.MigrationsFs, ".")
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to read assets from iofs")
+	}
+
+	m, err := migrate.NewWithInstance("iofs", d, "postgres", driver)
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to create migration from go-bindata")
+	}
+	// In case another process was faster and runs migrations, we will wait
+	// this long
+	m.LockTimeout = 5 * time.Minute
+
+	return m
+}
 
 func DoMigrate(m *migrate.Migrate) (err error) {
 	err = m.Up()

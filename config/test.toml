@@ -1,0 +1,10 @@
+[server]
+host = "localhost"
+port = "8091"
+
+[database]
+name = "url_shortener_test"
+host = "localhost"
+port = 15432
+username = "test"
+password = "test"

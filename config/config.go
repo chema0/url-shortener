@@ -2,14 +2,15 @@ package config
 
 import (
 	"fmt"
-	"os"
 
+	"github.com/chema0/url-shortener/pkg/utils"
 	"github.com/spf13/viper"
 )
 
 const (
 	Development = "dev"
 	Production  = "prod"
+	Test        = "test"
 )
 
 type Config struct {
@@ -31,19 +32,15 @@ type DatabaseConfig struct {
 }
 
 func LoadConfig() *Config {
-	env := os.Getenv("env")
+	env := utils.Get("env", Development)
 
-	if env == "" {
-		env = Development
-	}
-
-	if env != Development && env != Production {
-		panic(fmt.Errorf("invalid environment, possible values are: '%s' or '%s'", Development, Production))
+	if env != Development && env != Production && env != Test {
+		panic(fmt.Errorf("invalid environment, possible values are: '%s', %s or '%s'", Development, Production, Test))
 	}
 
 	viper.SetConfigName(env)
 	viper.SetConfigType("toml")
-	viper.AddConfigPath("config/")
+	viper.AddConfigPath("../../config/")
 
 	err := viper.ReadInConfig()
 	if err != nil {
