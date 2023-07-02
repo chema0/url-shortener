@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"os"
 	"strings"
 	"sync"
@@ -22,7 +23,22 @@ func TestContext(t testing.TB) context.Context {
 	connectOnce.Do(func() {
 		// Loads configuration and configures logger
 		cfg := config.LoadConfig()
-		var err error
+
+		db, err := Open(BuildConnString(&cfg.Database, true))
+		if err != nil {
+			t.Fatal("failed to connect to db server")
+		}
+
+		// Creates test database, drops the previous one before
+		_, err = db.Exec(fmt.Sprintf("DROP DATABASE IF EXISTS %s;", cfg.Database.Name))
+		if err != nil {
+			t.Errorf("failed to drop testing db: %s", err)
+		}
+		_, err = db.Exec(fmt.Sprintf("CREATE DATABASE %s;", cfg.Database.Name))
+		if err != nil {
+			t.Errorf("failed to create testing db: %s", err)
+		}
+
 		Global, err = NewDatabase(&cfg.Database)
 		if err != nil {
 			t.Fatal("failed to load config")

@@ -1,3 +1,3 @@
-DROP TABLE IF EXISTS url_view;
+DROP TABLE IF EXISTS urls_view;
 DROP INDEX idx_url_hash;
-DROP TABLE IF EXISTS url;
+DROP TABLE IF EXISTS urls;

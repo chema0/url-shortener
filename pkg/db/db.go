@@ -39,9 +39,8 @@ func NewDatabase(cfg *config.DatabaseConfig) (*sql.DB, error) {
 		return nil, errors.New("error setting PGTZ=UTC")
 	}
 
-	db, err := openDBWithStartupWait(buildConnString(cfg, false))
+	db, err := openDBWithStartupWait(BuildConnString(cfg, false))
 	if err != nil {
-		println(err.Error())
 		return nil, errors.New("DB not available")
 	}
 	configureConnectionPool(db)
@@ -112,9 +111,9 @@ func Open(dataSourceName string) (*sql.DB, error) {
 	return db, nil
 }
 
-func buildConnString(config *config.DatabaseConfig, connectToServer bool) string {
+func BuildConnString(config *config.DatabaseConfig, connectToServer bool) string {
 	if connectToServer {
-		return fmt.Sprintf("postgres://%s:%s@%s:%v/?sslmode=disable",
+		return fmt.Sprintf("postgres://%s:%s@%s:%v/postgres?sslmode=disable",
 			config.Username, config.Password, config.Host, config.Port)
 	}
 	return fmt.Sprintf("postgres://%s:%s@%s:%v/%s?sslmode=disable",

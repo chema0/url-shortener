@@ -19,8 +19,8 @@ type URL struct {
 type URLs interface {
 	CreateURL(url URL) (URL, error)
 	ListURLs(ownerID string) ([]URL, error)
-	DeleteURL(id string) error
 	GetURLByHash(hash string) (URL, error)
+	DeleteURL(id int64) error
 }
 
 type URLsRepository struct {
@@ -35,31 +35,52 @@ func NewURLs(db *sql.DB, cfg *config.DatabaseConfig) URLs {
 	}
 }
 
-func (r *URLsRepository) CreateURL(url URL) (URL, error) {
-	// r.db.Exec("INSERT INTO url (url, hash, expired_at, owner_id) VALUES ($1, $2, $3, $4) RETURNING ")
-	row, err := r.db.Query("INSERT INTO url (url, hash, expired_at, owner_id) VALUES ($1, $2, $3, $4) RETURNING id, url, hash, created_at, expired_at, owner_id",
-		url.URL, url.Hash, url.ExpiredAt, url.OwnerID)
+const (
+	hashLength = 8
+)
 
-	// FIXME: check url return on error
+func (r *URLsRepository) CreateURL(url URL) (URL, error) {
+	url.Hash = generateHash(hashLength)
+	url.ExpiredAt = time.Now().AddDate(0, 1, -1)
+
+	query := `
+		INSERT INTO urls (url, hash, expired_at, owner_id) VALUES ($1, $2, $3, $4) 
+		RETURNING id, url, hash, created_at, expired_at, owner_id;`
+	err := r.db.QueryRow(query,
+		url.URL, url.Hash, url.ExpiredAt, url.OwnerID).Scan(&url.ID, &url.URL, &url.Hash, &url.CreatedAt, &url.ExpiredAt, &url.OwnerID)
+
 	if err != nil {
 		return url, err
 	}
 
-	row.Scan(&url)
 	return url, err
 }
 
-// TODO: implement
 func (r *URLsRepository) ListURLs(ownerID string) ([]URL, error) {
-	return []URL{}, nil
+	rows, err := r.db.Query("SELECT * FROM urls WHERE owner_id = $1;", ownerID)
+
+	urls := []URL{}
+	defer rows.Close()
+	for rows.Next() {
+		var url URL
+		err := rows.Scan(&url.ID, &url.URL, &url.Hash, &url.CreatedAt, &url.ExpiredAt, &url.OwnerID)
+		if err != nil {
+			return []URL{}, err
+		}
+		urls = append(urls, url)
+	}
+
+	return urls, err
 }
 
-// TODO: implement
-func (r *URLsRepository) DeleteURL(id string) error {
-	return nil
-}
-
-// TODO: implement
 func (r *URLsRepository) GetURLByHash(hash string) (URL, error) {
-	return URL{}, nil
+	url := URL{}
+	err := r.db.QueryRow("SELECT * FROM urls WHERE hash = $1;",
+		hash).Scan(&url.ID, &url.URL, &url.Hash, &url.CreatedAt, &url.ExpiredAt, &url.OwnerID)
+	return url, err
+}
+
+func (r *URLsRepository) DeleteURL(id int64) error {
+	_, err := r.db.Exec("DELETE FROM urls WHERE id = $1;", id)
+	return err
 }

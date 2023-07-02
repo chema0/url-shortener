@@ -2,6 +2,9 @@ package config
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+	"runtime"
 
 	"github.com/chema0/url-shortener/pkg/utils"
 	"github.com/spf13/viper"
@@ -38,11 +41,16 @@ func LoadConfig() *Config {
 		panic(fmt.Errorf("invalid environment, possible values are: '%s', %s or '%s'", Development, Production, Test))
 	}
 
+	projectConfigPath, err := getProjectConfigPath()
+	if err != nil {
+		panic(fmt.Errorf("fatal error reaching config dir: %w", err))
+	}
+
 	viper.SetConfigName(env)
 	viper.SetConfigType("toml")
-	viper.AddConfigPath("../../config/")
+	viper.AddConfigPath(projectConfigPath)
 
-	err := viper.ReadInConfig()
+	err = viper.ReadInConfig()
 	if err != nil {
 		panic(fmt.Errorf("fatal error reading config file: %w", err))
 	}
@@ -59,3 +67,34 @@ func LoadConfig() *Config {
 
 // TODO: validate config fn
 // TODO: tests
+
+func getProjectConfigPath() (string, error) {
+	_, filename, _, ok := runtime.Caller(0)
+	if !ok {
+		return "", fmt.Errorf("failed to get current file path")
+	}
+
+	projectConfigPath := ""
+	err := filepath.Walk(filepath.Dir(filename), func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if info.IsDir() && filepath.Base(path) == "config" {
+			projectConfigPath = path
+			return filepath.SkipDir
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return "", err
+	}
+
+	if projectConfigPath == "" {
+		return "", fmt.Errorf("failed to find project root path")
+	}
+
+	return projectConfigPath, nil
+}
