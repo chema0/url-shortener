@@ -65,9 +65,6 @@ func LoadConfig() *Config {
 	return config
 }
 
-// TODO: validate config fn
-// TODO: tests
-
 func getProjectConfigPath() (string, error) {
 	_, filename, _, ok := runtime.Caller(0)
 	if !ok {

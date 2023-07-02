@@ -43,15 +43,10 @@ func (r *URLsRepository) CreateURL(url URL) (URL, error) {
 	url.Hash = generateHash(hashLength)
 	url.ExpiredAt = time.Now().AddDate(0, 1, -1)
 
-	query := `
-		INSERT INTO urls (url, hash, expired_at, owner_id) VALUES ($1, $2, $3, $4) 
+	query := `INSERT INTO urls (url, hash, expired_at, owner_id) VALUES ($1, $2, $3, $4) 
 		RETURNING id, url, hash, created_at, expired_at, owner_id;`
 	err := r.db.QueryRow(query,
 		url.URL, url.Hash, url.ExpiredAt, url.OwnerID).Scan(&url.ID, &url.URL, &url.Hash, &url.CreatedAt, &url.ExpiredAt, &url.OwnerID)
-
-	if err != nil {
-		return url, err
-	}
 
 	return url, err
 }
