@@ -35,12 +35,8 @@ func NewURLs(db *sql.DB, cfg *config.DatabaseConfig) URLs {
 	}
 }
 
-const (
-	hashLength = 8
-)
-
 func (r *URLsRepository) CreateURL(url URL) (URL, error) {
-	url.Hash = generateHash(hashLength)
+	url.Hash = GenerateHash(url.URL)
 	url.ExpiredAt = time.Now().AddDate(0, 1, -1)
 
 	query := `INSERT INTO urls (url, hash, expired_at, owner_id) VALUES ($1, $2, $3, $4) 
